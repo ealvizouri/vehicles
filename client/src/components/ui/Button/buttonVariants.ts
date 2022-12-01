@@ -31,6 +31,16 @@ buttonVariants.set(
 );
 
 buttonVariants.set(
+  'danger',
+  `
+    ${buttonBaseStyle}
+    bg-red-500
+    hover:bg-red-700
+    text-white
+  `
+);
+
+buttonVariants.set(
   'link',
   `
     ${buttonBaseStyle}

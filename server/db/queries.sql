@@ -1,2 +1,4 @@
 -- SQLite
-select id, parent_id, name from makemodels;
+SELECT id, parent_id, name FROM makemodels;
+
+SELECT * FROM vehicles;
