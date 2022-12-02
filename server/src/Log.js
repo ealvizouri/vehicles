@@ -1,11 +1,18 @@
 import chalk from 'chalk';
 
 class Log {
+  static chalk(color, ...args) {
+    console.log(chalk[color](...args));
+
+  }
   static error(...args) {
-    console.log(chalk.red(...args));
+    Log.chalk('red', ...args);
   }
   static success(...args) {
-    console.log(chalk.green(...args));
+    Log.chalk('green', ...args);
+  }
+  static info(...args) {
+    Log.chalk('blue', ...args);
   }
 }
 

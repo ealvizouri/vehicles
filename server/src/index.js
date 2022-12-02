@@ -1,77 +1,24 @@
+import cors from 'cors';
 import express from 'express';
 import bodyParser from 'body-parser';
 import Log from './Log.js';
-import { MakeModel, Vehicle } from './db.js';
+import sq from './sequelize.js';
+
+sq.getInstance();
 
 const { urlencoded, json } = bodyParser;
-const port = 8080
 
+const port = 8080;
 
-import makeModels from './seeds/makeModels.seed.js';
+var app = express();
+app.use(cors());
 
-var app = express()
 
 // parse application/x-www-form-urlencoded
-app.use(urlencoded({ extended: false }))
+/* app.use(urlencoded({ extended: false })); */
 
 // parse application/json
-app.use(json())
-function setup() {
-  MakeModel
-    .sync({ force: true })
-    .then(() => {
-      makeModels.forEach(async item => {
-        try {
-          const make = await MakeModel.create({
-            name: item.name
-          });
-          if (Array.isArray(item.models)) {
-            item.models.forEach(itemModel => {
-              MakeModel.create({
-                parent_id: make.id,
-                name: itemModel
-              });
-            });
-          }
-        } catch (e) {
-          Log.error(e);
-        }
-      });
-    })
-    .catch((err) => {
-      if (err.errors) {
-        const { errors } = err;
-        errors.forEach(err => {
-          Log.error(err.path, err.message);
-        });
-      } else {
-        Log.error(err);
-      }
-    });
-  Vehicle
-    .sync({ force: true })
-    .then(() => {
-      Vehicle.create({
-        vin: '1HGBH41JXMN109186',
-        model_id: 6,
-        make_id: 2,
-        year: '2020',
-        email: 'ealvizouri@gmail.com',
-        image: 'asldkmasd',
-        milage: 66321.20
-      })
-    .catch((err) => {
-      if (err.errors) {
-        const { errors } = err;
-        errors.forEach(err => {
-          Log.error(err.path, err.message);
-        });
-      } else {
-        Log.error(err);
-      }
-    });
-  });
-}
+app.use(json());
 
 /* app.use(function (req, res) {
   res.setHeader('Content-Type', 'text/plain')
@@ -79,26 +26,37 @@ function setup() {
   res.send(JSON.stringify(req.body, null, 2))
 }); */
 
-app.get('/makes', function (req, res) {
+app.get('/makes', async function (req, res) {
+  const { MakeModel } = await sq.getInstance();
   MakeModel
     .findAll({
       where: {
         parent_id: null
-      }
+      },
+      attributes: [
+        'id',
+        'name'
+      ]
     })
     .then((makes) => {
       res.send(makes);
+    }).catch(e => {
+      res.send(e);
     });
 });
 
-app.get('/models/:parent_id', function (req, res) {
+app.get('/models/:parent_id', async function (req, res) {
+  const { MakeModel } = await sq.getInstance();
   const { parent_id } = req.params;
-  console.log(req.params);
   MakeModel
     .findAll({
       where: {
         parent_id
-      }
+      },
+      attributes: [
+        'id',
+        'name'
+      ]
     })
     .then((makes) => {
       res.send(makes);
@@ -139,6 +97,6 @@ app.get('/', function (req, res) {
   res.send('Vehicles API works!');
 });
 
-app.listen(port, () => {
+app.listen(port, 'localhost', () => {
   Log.success(`Vehicles server started at http://localhost:${port}`)
 })

@@ -1,6 +1,6 @@
 import { INTEGER, STRING, SMALLINT, FLOAT } from "sequelize";
 
-const defineVehicle = (sequelize) => {
+const defineVehicle = (sequelize, MakeModel) => {
   return sequelize.define("vehicles", {
     vin: {
       type: STRING,

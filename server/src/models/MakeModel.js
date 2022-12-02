@@ -11,7 +11,8 @@ const defineMakeModel = (sequelize) => {
       type: INTEGER
     },
     name: {
-      type: STRING
+      type: STRING,
+      unique: true
     }
   });
 }
