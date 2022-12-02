@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback, FC } from 'react';
 import { Column, useTable } from 'react-table';
 import { useNavigate  } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
+import { randomNum } from 'app/utils';
 import type { VehicleType } from 'app/store/vehicleSlice';
 import { fetchVehicles, selectVehicles } from 'app/store/vehicleSlice';
 import { deleteVehicle } from 'services/vehicles';
@@ -33,7 +34,15 @@ const Vehicles: FC = () => {
       {
         Header: 'Image',
         accessor: 'image' as keyof ColumnsObject, // accessor is the "key" in the data
-        Cell: (props: any) => <img src={`${process.env.REACT_APP_VEHICLE_IMG_URL}${props.value}`} alt={`Vehicle from ${props.row.values.email}`} />
+        Cell: (props: any) => (
+          <div className="flex justify-center">
+            <img
+              src={`${process.env.REACT_APP_VEHICLE_IMG_URL}${props.value}?r=${randomNum()}`}
+              alt={`Vehicle from ${props.row.values.email}`}
+              className="max-h-[200px]"
+            />
+          </div>
+        )
       },
       {
         Header: 'VIN',

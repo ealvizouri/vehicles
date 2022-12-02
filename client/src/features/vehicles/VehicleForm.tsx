@@ -3,6 +3,7 @@ import { Form } from 'react-final-form';
 import FormData from 'form-data';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
+import { randomNum } from 'app/utils';
 import { fetchMakes, fetchModels, selectMakes, selectModels } from 'app/store/makeModelSlice';
 import type { VehicleType } from 'app/store/vehicleSlice';
 import { vehicleCreateValidationSchema, vehicleUpdateValidationSchema } from './vehicleValidationSchema';
@@ -19,13 +20,6 @@ type InnerItem = {
   path: string,
   message: string
 }
-
-/* type AlertType = {
-  title: string,
-  description: string,
-  variant: string,
-  className?: string
-} */
 
 const VehicleForm: FC = () => {
   const navigate = useNavigate();
@@ -79,8 +73,7 @@ const VehicleForm: FC = () => {
         console.error(e);
       }
     }
-    
-    var {data, err} = await (vin ? updateVehicle(formData) : saveVehicle(formData));
+    var {data, err} = await (vin ? updateVehicle(formData, vin) : saveVehicle(formData));
       if (!err) {
         if (data.errors) {
           return data.errors;
@@ -91,7 +84,10 @@ const VehicleForm: FC = () => {
             variant: 'success',
           });
           if (data.image) {
-            setImageUrl(`${data.image}?id=${Math.floor(Math.random() * 100)}`);
+            setImageUrl(`${data.image}?r=${randomNum()}`);
+          }
+          if (data.vin !== vin) {
+            navigate(`/vehicle/edit/${data.vin}`);
           }
         } else if (!vin) {
           setAlertMessage({
