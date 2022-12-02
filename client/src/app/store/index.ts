@@ -1,9 +1,13 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
-import counterReducer from '../features/counter/counterSlice';
+import counterReducer from '../../features/counter/counterSlice';
+import makeModelReducer from 'app/store/makeModelSlice';
+import vehicleReducer from 'app/store/vehicleSlice';
 
 export const store = configureStore({
   reducer: {
     counter: counterReducer,
+    makeModel: makeModelReducer,
+    vehicle: vehicleReducer
   },
 });
 
