@@ -1,4 +1,5 @@
 import _fetch from 'app/fetch';
+import FormData from 'form-data';
 import type { VehicleType } from 'app/store/vehicleSlice';
 
 export const fetchVehicles = async () => {

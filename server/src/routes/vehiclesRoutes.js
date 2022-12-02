@@ -1,25 +1,47 @@
+import { unlink } from 'node:fs';
+import * as dotenv from 'dotenv';
 import express from 'express';
 import { v4 as uuid } from 'uuid';
 import multer from 'multer';
 import Log from '../Log.js';
 import sq from '../sequelize.js';
+import { readdir } from 'fs/promises';
+
+dotenv.config();
+
+const findFileByName = async (dir, name) => {
+    const files = await readdir(dir);
+
+    for (const file of files) {
+        if (file.startsWith(`${name}.`)) {
+            return file;
+        }
+    }
+
+    return null;
+};
 
 
 
 const storage = multer.diskStorage(
   {
-      destination: '../client/public/vehicles/',
-      filename: function ( { body }, file, cb ) {
+      destination: process.env.PATH_IMAGES,
+      filename: async function ( { body }, file, cb ) {
         const { vin } = body;
         const ext = file.mimetype.replace('image/', '');
         if (vin) {
+          const currentFile = await findFileByName(process.env.PATH_IMAGES, vin);
+          if (currentFile && !currentFile.endsWith(ext)) {
+            unlink(process.env.PATH_IMAGES + currentFile, (err) => {
+              if (err) Log.error(err);
+              else Log.success(`${currentFile} was deleted`);
+            });
+          }
           cb( null, `${vin}.${ext}`);
         } else {
           cb( null, `${uuid()}.${ext}`);
         }
-          //req.body is empty...
-          //How could I get the new_file_name property sent from client here?
-      }
+      },
   }
 );
 
@@ -30,14 +52,21 @@ const upload = multer({
 
 const router = express.Router();
 
+const getMethods = (obj) => {
+  let properties = new Set()
+  let currentObj = obj
+  do {
+    Object.getOwnPropertyNames(currentObj).map(item => properties.add(item))
+  } while ((currentObj = Object.getPrototypeOf(currentObj)))
+  return [...properties.keys()].filter(item => typeof obj[item] === 'function')
+}
+
 router.route('/vehicles')
   .get(async function (req, res) {
     const { Vehicle } = await sq.getInstance();
     Vehicle.findAll({
       attributes: ['vin', 'image', 'email', 'milage']
     }).then(function(vehicles) {
-      // finds all entries in the users table
-      /* vehicles.forEach() */
       res.send(vehicles); // sends users back to the page
     })
     .catch(e => {
@@ -53,20 +82,33 @@ router.route('/vehicles')
       });
       res.send(newVehicle);
     } catch(err) {
-      res.send(err);
+      const errors = {};
+      if (Array.isArray(err.errors)) {
+        err.errors.forEach((item) => {
+          errors[item.path] = item.message;
+        });
+      } else {
+        errors.server = 'error from server';
+        console.error(e);
+      }
+      res.status(406).send({ errors });
     }
   })
   .put(upload.single('image'), async function ({ body, file }, res) {
     const { Vehicle } = await sq.getInstance();
+    const image = file ? file.filename : null;
+    const data = {
+      ...body,
+      ...(image ? { image } : {})
+    };
     try {
-      const existingVehicle = await Vehicle.update(
+      await Vehicle.update(
+        data,
         {
-          ...body,
-          ...(file ? { image: file.filename } : {})
-        },
-        { where: { vin: body.vin } }
+          where: { vin: body.vin }
+        }
       );
-      res.send(existingVehicle);
+      res.send(data);
     } catch(err) {
       res.send(err);
     }
@@ -92,6 +134,12 @@ router.route('/vehicles/:vin')
     try {
       const existingVehicle = await Vehicle.findOne({ where: { vin } });
       if (existingVehicle) {
+        if (existingVehicle.image) {
+          unlink(process.env.PATH_IMAGES + existingVehicle.image, (err) => {
+            if (err) Log.error(err);
+            else Log.success(`${existingVehicle.image} was deleted`);
+          });
+        }
         existingVehicle.destroy();
       }
       res.send({ success: true, vehicle: existingVehicle });

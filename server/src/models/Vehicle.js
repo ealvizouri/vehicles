@@ -6,6 +6,10 @@ const defineVehicle = (sequelize, MakeModel) => {
     vin: {
       type: STRING,
       primaryKey: true,
+      unique: {
+        arg: true,
+        msg: 'There\'s already a vehicle with this VIN'
+      },
       allowNull: false,
       validate: {
         notNull: true,

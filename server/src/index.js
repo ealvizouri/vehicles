@@ -12,6 +12,7 @@ const { urlencoded, json } = bodyParser;
 const port = 8080;
 
 var app = express();
+app.use(express.static('public'))
 app.use(cors());
 
 

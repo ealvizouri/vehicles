@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, FC } from 'react';
 import { Form } from 'react-final-form';
+import FormData from 'form-data';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
 import { fetchMakes, fetchModels, selectMakes, selectModels } from 'app/store/makeModelSlice';
@@ -7,21 +8,31 @@ import type { VehicleType } from 'app/store/vehicleSlice';
 import { vehicleCreateValidationSchema, vehicleUpdateValidationSchema } from './vehicleValidationSchema';
 import { fetchVehicle, saveVehicle, updateVehicle } from 'services/vehicles';
 
+import Alert from 'components/ui/Alert';
+import type { AlertType } from 'components/ui/Alert/Alert';
+import Button from 'components/ui/Button';
 import Input from 'components/form/Input';
 import InputFile from 'components/form/InputFile';
 import Select from 'components/form/Select';
-import Button from 'components/ui/Button';
 
 type InnerItem = {
   path: string,
   message: string
 }
 
+/* type AlertType = {
+  title: string,
+  description: string,
+  variant: string,
+  className?: string
+} */
+
 const VehicleForm: FC = () => {
   const navigate = useNavigate();
   const { vin } = useParams();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string>('');
+  const [alertMessage, setAlertMessage] = useState<AlertType | null>(null);
   const [initialValues, setInitialValues] = useState<VehicleType | null>(null);
   const disptach = useAppDispatch();
   const makes = useAppSelector(selectMakes);
@@ -53,49 +64,45 @@ const VehicleForm: FC = () => {
   const onFileChange = useCallback((file: File | null) => {
     setImageFile(file);
   }, []);
-  const onSubmit = useCallback(async (e: any, form: any) => {
-    /* e.persist(); */
-    e.preventDefault();
-    const formState = form.getState();
-    const { values, invalid } = formState;
-    const errors = await validate(values);
-    console.log(form, values, formState, errors);
-    if (invalid || Object.keys(errors).length > 0) {
-      return;
-    }
+  const onSubmit = useCallback(async (values: any, form:any) => {
     const formData = new FormData();
     Object.keys(values)
       .filter(item => !['image', 'imageUrl'].includes(item))
       .forEach(key => {
-        formData.set(key, values[key]);
+        formData.append(key, values[key]);
       });
 
     if (imageFile) {
       try {
-        formData.set('image', imageFile);
+        formData.append('image', imageFile);
       } catch (e) {
         console.error(e);
       }
     }
-    const {data, err} = await saveVehicle(formData);
     
-    /* if (vin) {
-      var {data, err} = await updateVehicle(formData);
-      console.log(data, err);
+    var {data, err} = await (vin ? updateVehicle(formData) : saveVehicle(formData));
       if (!err) {
-        console.log(`/vehicle/view/${vin}`);
-        // navigate(`/vehicle/view/${vin}`);
+        if (data.errors) {
+          return data.errors;
+        } else if (vin) {
+          setAlertMessage({
+            title: 'Done!',
+            description: 'Updated successfully',
+            variant: 'success',
+          });
+          if (data.image) {
+            setImageUrl(`${data.image}?id=${Math.floor(Math.random() * 100)}`);
+          }
+        } else if (!vin) {
+          setAlertMessage({
+            title: 'Done!',
+            description: 'Created successfully',
+            variant: 'success',
+          });
+          navigate(`/vehicle/edit/${data.vin}`);
+        }
       }
-    } else {
-      var {data, err} = await saveVehicle(formData);
-      console.log(data, err);
-      if (!err) {
-        console.log(`/vehicle/view/${vin}`);
-        // navigate(`/vehicle/view/${data.vin}`);
-      }
-    } */
-    return;
-  }, [imageFile, vin]);
+  }, [imageFile, vin, navigate]);
 
   useEffect(() => {
     disptach(fetchMakes());
@@ -144,7 +151,7 @@ const VehicleForm: FC = () => {
         </Button>
       </div>
       <Form
-        onSubmit={console.log}
+        onSubmit={onSubmit}
         validate={validate}
         initialValues={initialValues ?? {
           vin: '',
@@ -158,9 +165,7 @@ const VehicleForm: FC = () => {
         {props => {
           // see  https://github.com/final-form/react-final-form/issues/332
           return (
-            <form onSubmit={(e) => {
-              onSubmit(e, props.form);
-            }}>
+            <form onSubmit={props.handleSubmit}>
               <Input label="VIN" name="vin" type="text" />
               <Select
                 valueKey="id"
@@ -191,11 +196,12 @@ const VehicleForm: FC = () => {
                   <img className="max-w-sm" alt="vehicle" src={`${process.env.REACT_APP_VEHICLE_IMG_URL}${imageUrl}`} />
                 </div>
               </>}
+              {alertMessage && <Alert {...alertMessage} />}
               <div className="flex justify-end">
                 <Button
                   type="submit"
                   variant="primary"
-                  disabled={props.invalid || !props.dirty}
+                  disabled={(props.invalid && !props.modifiedSinceLastSubmit) || !props.dirty}
                 >
                   Save
                 </Button>

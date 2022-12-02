@@ -5,4 +5,6 @@ SELECT * FROM makemodels;
 
 SELECT * FROM vehicles;
 
+SELECT image FROM vehicles;
+
 SELECT * FROM vehicles WHERE vin = 'LKJASD81JA123';

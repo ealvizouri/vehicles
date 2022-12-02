@@ -13,7 +13,7 @@ interface InputFileProps extends InputHTMLAttributes<HTMLInputElement> {
  const InputFile: FC<InputFileProps> = ({ label, name, className, onFileChange, ...props }) => {
   const { input, meta } = useField(name);
   return (
-    <FormItem label={label} name={name} error={meta.touched && meta.error}>
+    <FormItem label={label} name={name} error={meta.touched && (meta.error || meta.submitError)}>
       <input
         className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${className}`}
         {...props}

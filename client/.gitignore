@@ -8,9 +8,6 @@
 # testing
 /coverage
 
-# images
-/public/vehicles/*
-
 # production
 /build
 
