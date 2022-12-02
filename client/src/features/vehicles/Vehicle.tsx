@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useNavigate  } from 'react-router-dom';
 import type { MakeModelType } from 'app/store/makeModelSlice';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
+import { randomNum } from 'app/utils';
 import { fetchVehicle, selectVehicle } from 'app/store/vehicleSlice';
 import _fetch from 'app/fetch';
 import { deleteVehicle } from 'services/vehicles';
@@ -91,7 +92,7 @@ const Vehicle: FC = () => {
           Back
         </Button>
       </div>
-      <Card imageUrl={`${process.env.REACT_APP_VEHICLE_IMG_URL}${vehicle.image}`} title={vehicle.vin}>
+      <Card imageUrl={`${process.env.REACT_APP_VEHICLE_IMG_URL}${vehicle.image}?r=${randomNum()}`} title={vehicle.vin}>
         <ul>
           <li>
             Make: <span className="font-bold">{make?.name}</span>
