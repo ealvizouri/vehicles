@@ -38,12 +38,13 @@ const VehicleForm: FC = () => {
           abortEarly: false
         });
       }
-  } catch(e: any) {
-    if (Array.isArray(e.inner)) {
+    } catch(e: any) {
+      if (Array.isArray(e.inner)) {
         e.inner.forEach((item: InnerItem) => {
           errors[item.path] = item.message;
         });
       } else {
+        errors.server = 'error froms server';
         console.error(e);
       }
     }
@@ -52,7 +53,16 @@ const VehicleForm: FC = () => {
   const onFileChange = useCallback((file: File | null) => {
     setImageFile(file);
   }, []);
-  const onSubmit = async (values: any) => {
+  const onSubmit = useCallback(async (e: any, form: any) => {
+    /* e.persist(); */
+    e.preventDefault();
+    const formState = form.getState();
+    const { values, invalid } = formState;
+    const errors = await validate(values);
+    console.log(form, values, formState, errors);
+    if (invalid || Object.keys(errors).length > 0) {
+      return;
+    }
     const formData = new FormData();
     Object.keys(values)
       .filter(item => !['image', 'imageUrl'].includes(item))
@@ -67,23 +77,35 @@ const VehicleForm: FC = () => {
         console.error(e);
       }
     }
-    if (vin) {
+    const {data, err} = await saveVehicle(formData);
+    
+    /* if (vin) {
       var {data, err} = await updateVehicle(formData);
+      console.log(data, err);
       if (!err) {
-        navigate(`/vehicle/view/${vin}`);
+        console.log(`/vehicle/view/${vin}`);
+        // navigate(`/vehicle/view/${vin}`);
       }
     } else {
       var {data, err} = await saveVehicle(formData);
+      console.log(data, err);
       if (!err) {
-        navigate(`/vehicle/view/${data.vin}`);
+        console.log(`/vehicle/view/${vin}`);
+        // navigate(`/vehicle/view/${data.vin}`);
       }
-    }
-  }
+    } */
+    return;
+  }, [imageFile, vin]);
 
   useEffect(() => {
     disptach(fetchMakes());
-    disptach(fetchModels(2));
   }, [disptach]);
+
+  useEffect(() => {
+    if (initialValues?.make_id) {
+      disptach(fetchModels(initialValues.make_id));
+    }
+  }, [initialValues, disptach])
 
   useEffect(() => {
     if (vin) {
@@ -122,7 +144,7 @@ const VehicleForm: FC = () => {
         </Button>
       </div>
       <Form
-        onSubmit={onSubmit}
+        onSubmit={console.log}
         validate={validate}
         initialValues={initialValues ?? {
           vin: '',
@@ -134,8 +156,11 @@ const VehicleForm: FC = () => {
         }}
       >
         {props => {
+          // see  https://github.com/final-form/react-final-form/issues/332
           return (
-            <form onSubmit={props.handleSubmit}>
+            <form onSubmit={(e) => {
+              onSubmit(e, props.form);
+            }}>
               <Input label="VIN" name="vin" type="text" />
               <Select
                 valueKey="id"
@@ -167,7 +192,13 @@ const VehicleForm: FC = () => {
                 </div>
               </>}
               <div className="flex justify-end">
-                <Button type="submit" variant="primary" disabled={props.invalid && !props.dirtySinceLastSubmit}>Submit</Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={props.invalid || !props.dirty}
+                >
+                  Save
+                </Button>
               </div>
             </form>
           )

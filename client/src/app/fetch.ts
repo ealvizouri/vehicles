@@ -9,7 +9,7 @@ interface FetchProps {
 https://github.com/expressjs/multer/issues/776
 */
 const _fetch = async ({ endpoint, method = 'GET', isJson = true, body, signal }: FetchProps) => {
-  try {
+    try {
     const res = await fetch(`http://localhost:8080/${endpoint}`, {
       method,
       mode: 'cors',
@@ -20,9 +20,10 @@ const _fetch = async ({ endpoint, method = 'GET', isJson = true, body, signal }:
         }
       } : {}),
       ...(signal ? { signal } : {}),
-      ...(body ? { body: isJson ? JSON.stringify(body) : body } : {})
+      body: isJson ? JSON.stringify(body) : body ?? {}
     });
-    return { data: await res.json(), err: null };
+    const data = await res.json();
+    return { data, err: null };
   } catch (e) {
     return { data: null, err: e};
   }

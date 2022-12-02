@@ -42,7 +42,7 @@ var sq = (function () {
         Vehicle
           .sync({ force: false })
           .then(() => {
-            Vehicle.create({
+            /* Vehicle.create({
               vin: '1HGBH41JXMN109186',
               model_id: 6,
               make_id: 2,
@@ -55,12 +55,13 @@ var sq = (function () {
               if (err.errors) {
                 const { errors } = err;
                 errors.forEach(err => {
-                  Log.error('path: ', err.path, err.message);
+                  console.log(err);
+                  Log.error('path:', err.path, err.message);
                 });
               } else {
                 Log.error(err);
               }
-            });
+            }); */
           });
       })
       .catch((err) => {

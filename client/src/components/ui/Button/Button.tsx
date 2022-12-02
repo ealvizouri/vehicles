@@ -9,7 +9,7 @@ const Button: FC<ButtonProps> = ({ variant = 'primary', children, className, ...
 
   return (
     <button
-      className={`${buttonVariants.get(variant)} ${className}`}
+      className={`${buttonVariants.get(variant)} ${className ?? ''}`}
       {...props}
     >
       {children}
