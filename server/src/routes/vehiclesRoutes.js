@@ -47,19 +47,9 @@ const storage = multer.diskStorage(
 
 const upload = multer({
   storage: storage,
-  /* dest: '../client/public/vehicles' */
 });
 
 const router = express.Router();
-
-const getMethods = (obj) => {
-  let properties = new Set()
-  let currentObj = obj
-  do {
-    Object.getOwnPropertyNames(currentObj).map(item => properties.add(item))
-  } while ((currentObj = Object.getPrototypeOf(currentObj)))
-  return [...properties.keys()].filter(item => typeof obj[item] === 'function')
-}
 
 router.route('/vehicles')
   .get(async function (req, res) {
@@ -93,25 +83,6 @@ router.route('/vehicles')
       }
       res.status(406).send({ errors });
     }
-  })
-  .put(upload.single('image'), async function ({ body, file }, res) {
-    const { Vehicle } = await sq.getInstance();
-    const image = file ? file.filename : null;
-    const data = {
-      ...body,
-      ...(image ? { image } : {})
-    };
-    try {
-      await Vehicle.update(
-        data,
-        {
-          where: { vin: body.vin }
-        }
-      );
-      res.send(data);
-    } catch(err) {
-      res.send(err);
-    }
   });
 
 router.route('/vehicles/:vin')
@@ -127,6 +98,34 @@ router.route('/vehicles/:vin')
       .catch(e => {
         res.send(e);
       });
+  })
+  .put(upload.single('image'), async function ({ params, body, file }, res) {
+    const { Vehicle } = await sq.getInstance();
+    const image = file ? file.filename : null;
+    const data = {
+      ...body,
+      ...(image ? { image } : {})
+    };
+    try {
+      await Vehicle.update(
+        data,
+        {
+          where: { vin: params.vin }
+        }
+      );
+      res.send(data);
+    } catch(err) {
+      const errors = {};
+      if (Array.isArray(err.errors)) {
+        err.errors.forEach((item) => {
+          errors[item.path] = item.message;
+        });
+      } else {
+        errors.server = 'error from server';
+        console.error(e);
+      }
+      res.status(406).send({ errors });
+    }
   })
   .delete(async function ({ params }, res) {
     const { vin } = params;

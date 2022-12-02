@@ -27,9 +27,9 @@ export const saveVehicle = async (vehicle: VehicleType | FormData ) => {
   });
 }
 
-export const updateVehicle = async (vehicle: VehicleType | FormData ) => {
+export const updateVehicle = async (vehicle: VehicleType | FormData, vin: string ) => {
   return await _fetch({
-    endpoint: 'vehicles',
+    endpoint: `vehicles/${vin}`,
     method: 'PUT',
     isJson: false,
     body: vehicle
