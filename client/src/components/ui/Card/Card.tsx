@@ -1,11 +1,12 @@
-import { useMemo, FC } from 'react';
+import { useMemo, FC, ReactNode } from 'react';
 
 interface CardProps {
-  imageUrl?: string,
-  title: string
+  imageUrl?: string;
+  title: string;
+  children: ReactNode;
 }
 
-const Card: FC<CardProps> = ({ imageUrl, title }: CardProps) => {
+const Card: FC<CardProps> = ({ imageUrl, title, children }: CardProps) => {
   const imageAlt = useMemo(
     () => imageUrl ? imageUrl.split('/').pop() : '',
     [imageUrl]
@@ -18,9 +19,9 @@ const Card: FC<CardProps> = ({ imageUrl, title }: CardProps) => {
           {title}
         </span>
       </h5>
-      <p className="font-normal text-gray-700 dark:text-gray-400">
-        Here are the biggest enterprise technology acquisitions of 2021 so far, in reverse chronological order.
-      </p>
+      <div>
+        {children}
+      </div>
     </div>
   );
 }

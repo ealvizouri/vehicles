@@ -34,3 +34,10 @@ export const updateVehicle = async (vehicle: VehicleType | FormData ) => {
     body: vehicle
   });
 }
+
+export const deleteVehicle = async (vin: string ) => {
+  return await _fetch({
+    endpoint: `vehicles/${vin}`,
+    method: 'DELETE'
+  });
+}

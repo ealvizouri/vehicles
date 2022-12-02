@@ -26,7 +26,7 @@ router.get('/makes/:id', async function (req, res) {
   const { id } = req.params;
   const { MakeModel } = await sq.getInstance();
   MakeModel
-    .findAll({
+    .findOne({
       where: {
         id,
         parent_id: null

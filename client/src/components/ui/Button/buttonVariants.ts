@@ -3,6 +3,7 @@ const buttonVariants = new Map();
 const buttonBaseStyle = `
   cursor-pointer
   font-bold
+  my-2
   py-2
   px-4
   rounded

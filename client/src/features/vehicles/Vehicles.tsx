@@ -1,25 +1,39 @@
-import { useEffect, useMemo, useState, FC } from 'react';
+import { useEffect, useMemo, useState, useCallback, FC } from 'react';
 import { Column, useTable } from 'react-table';
 import { useNavigate  } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
 import type { VehicleType } from 'app/store/vehicleSlice';
 import { fetchVehicles, selectVehicles } from 'app/store/vehicleSlice';
-import _fetch from 'app/fetch';
-import Button from '../../components/ui/Button';
+import { deleteVehicle } from 'services/vehicles';
+import Button from 'components/ui/Button';
+import ModalConfirm from 'components/ui/Modal/ModalConfirm';
 
 type ColumnsObject = VehicleType & { actions?: any }
 
 const Vehicles: FC = () => {
+  const [vehicleToRemove, setVehicleToRemove] = useState<string | null>(null);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const vehicles = useAppSelector(selectVehicles);
+
+  const removeVehicle = useCallback(async () => {
+    if (vehicleToRemove) {
+      const { err} = await deleteVehicle(vehicleToRemove);
+      if (err) {
+        console.log(err);
+        return;
+      }
+      setVehicleToRemove(null);
+      dispatch(fetchVehicles());
+    }
+  }, [vehicleToRemove, dispatch]);
 
   const columns: Column<ColumnsObject>[] = useMemo(
     () => [
       {
         Header: 'Image',
         accessor: 'image' as keyof ColumnsObject, // accessor is the "key" in the data
-        Cell: (props: any) => <img src={`http://localhost:3000/vehicles/${props.value}`} alt={`Vehicle from ${props.row.values.email}`} />
+        Cell: (props: any) => <img src={`${process.env.REACT_APP_VEHICLE_IMG_URL}${props.value}`} alt={`Vehicle from ${props.row.values.email}`} />
       },
       {
         Header: 'VIN',
@@ -56,7 +70,17 @@ const Vehicles: FC = () => {
   }, [dispatch]);
  
   return (
-    <div className="max-w-screen-sm">
+    <div className="max-w-screen-md">
+      <ModalConfirm
+        id={`remove-modal-${vehicleToRemove}`}
+        open={vehicleToRemove !== null}
+        onConfirm={removeVehicle}
+        onCancel={() => setVehicleToRemove(null)}
+      >
+        {vehicleToRemove ?
+        `You are about to remove a vehicle with VIN: ${vehicleToRemove}`
+        : null}
+      </ModalConfirm>
       <div className="flex justify-end py-3">
         <Button onClick={() => navigate(`/vehicle/new`)}>New Vehicle</Button>
       </div>

@@ -44,12 +44,7 @@ router.route('/vehicles')
       res.send(e);
     });
   })
-  .post(upload.single('image'), async function (req, res) {
-    const { body, file } = req;
-    console.log({
-      ...body,
-      image: file.filename
-    }, file);
+  .post(upload.single('image'), async function ({ body, file }, res) {
     const { Vehicle } = await sq.getInstance();
     try {
       const newVehicle = await Vehicle.create({
@@ -60,20 +55,42 @@ router.route('/vehicles')
     } catch(err) {
       res.send(err);
     }
-  }).put(async function ({ body }, res) {
+  })
+  .put(upload.single('image'), async function ({ body, file }, res) {
     const { Vehicle } = await sq.getInstance();
     try {
-      const existingVehicle = await Vehicle.update(body);
+      const existingVehicle = await Vehicle.update(
+        {
+          ...body,
+          ...(file ? { image: file.filename } : {})
+        },
+        { where: { vin: body.vin } }
+      );
       res.send(existingVehicle);
     } catch(err) {
       res.send(err);
     }
+  });
+
+router.route('/vehicles/:vin')
+  .get(async function (req, res) {
+    const { vin } = req.params;
+    const { Vehicle } = await sq.getInstance();
+    Vehicle
+      .findOne({ where: { vin } }).then(function(vehicle) {
+        // finds all entries in the users table
+        /* vehicles.forEach() */
+        res.send(vehicle); // sends users back to the page
+      })
+      .catch(e => {
+        res.send(e);
+      });
   })
   .delete(async function ({ params }, res) {
-    const { vim } = params;
+    const { vin } = params;
     const { Vehicle } = await sq.getInstance();
     try {
-      const existingVehicle = await Vehicle.findOne({ where: { vim } });
+      const existingVehicle = await Vehicle.findOne({ where: { vin } });
       if (existingVehicle) {
         existingVehicle.destroy();
       }
@@ -82,20 +99,5 @@ router.route('/vehicles')
       res.send(err);
     }
   });
-
-router.get('/vehicles/:vin', async function (req, res) {
-  const { vin } = req.params;
-  const { Vehicle } = await sq.getInstance();
-  Vehicle
-    .findOne({ where: { vin } }).then(function(vehicle) {
-      // finds all entries in the users table
-      /* vehicles.forEach() */
-      console.log(vin, vehicle);
-      res.send(vehicle); // sends users back to the page
-    })
-    .catch(e => {
-      res.send(e);
-    });
-});
 
 export default router;

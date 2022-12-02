@@ -33,7 +33,7 @@ interface InputProps extends InputHTMLAttributes<HTMLSelectElement> {
       props.onChange(e);
     }
     input.onChange(e);
-  }, []);
+  }, [props, input]);
   return (
     <FormItem label={label} name={name} error={meta.touched && meta.error}>
       <select

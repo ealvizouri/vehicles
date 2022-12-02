@@ -4,7 +4,8 @@ import * as vehicleService from '../../services/vehicles';
 
 export type VehicleType = {
   vin: string,
-  image: string,
+  image?: string,
+  imageUrl?: string,
   email: string,
   milage: number,
   model_id?: number,

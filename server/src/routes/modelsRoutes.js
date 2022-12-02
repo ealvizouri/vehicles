@@ -28,7 +28,7 @@ router.get('/model/:id', async function (req, res) {
   const { MakeModel } = await sq.getInstance();
   const { id } = req.params;
   MakeModel
-    .findAll({
+    .findOne({
       where: {
         id
       },
