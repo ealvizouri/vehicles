@@ -1,12 +1,7 @@
-import { FC, ReactNode } from 'react';
-import { Outlet, Link, useRoutes, useParams } from "react-router-dom";
-
-interface MainLayoutProps {
-  children: JSX.Element | ReactNode
-}
+import { Outlet } from "react-router-dom";
 
 const MainLayout = () => (
-  <div>
+  <div className="flex justify-center py-20">
     <Outlet />
   </div>
 );

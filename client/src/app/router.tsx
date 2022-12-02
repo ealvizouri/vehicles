@@ -1,5 +1,5 @@
 import type { RouteObject } from "react-router-dom";
-import { createBrowserRouter, Outlet, Link, useRoutes, useParams } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 
 /* ERRORS */
 import ErrorPage from '../features/errors/ErrorPage';
@@ -23,7 +23,7 @@ let routes: RouteObject[] = [
         element: <Vehicle />
       },
       {
-        path: '/vehicle/add',
+        path: '/vehicle/new',
         element: <VehicleForm />
       },
       {

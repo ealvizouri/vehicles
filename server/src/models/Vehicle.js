@@ -1,4 +1,5 @@
 import { INTEGER, STRING, SMALLINT, FLOAT } from "sequelize";
+import Log from "../Log.js";
 
 const defineVehicle = (sequelize, MakeModel) => {
   return sequelize.define("vehicles", {
@@ -17,26 +18,6 @@ const defineVehicle = (sequelize, MakeModel) => {
         isLEThanSeventeenLong(value) {
           if (value.length > 17) {
             throw new Error('VIN must must have at most 17 characters')
-          }
-        }
-      }
-    },
-    model_id: {
-      type: INTEGER,
-      allowNull:false,
-      validate: {
-        notEmpty: true,
-        isInt: true,
-        exists: async function(value) {
-          const model = await MakeModel.findOne({
-            where: {
-              id: parseInt(value)
-            }
-          });
-          if (model === null) {
-            throw new Error('The selected model doesn\'t exists');
-          } else if (model.parent_id !== this.make_id) {
-            throw new Error('The selected model doesn\'t belong to the make');
           }
         }
       }
@@ -60,6 +41,27 @@ const defineVehicle = (sequelize, MakeModel) => {
         }
       }
     },
+    model_id: {
+      type: INTEGER,
+      allowNull:false,
+      validate: {
+        notEmpty: true,
+        isInt: true,
+        exists: async function(value) {
+          const model = await MakeModel.findOne({
+            where: {
+              id: parseInt(value)
+            }
+          });
+          if (model === null) {
+            throw new Error('The selected model doesn\'t exists');
+          } else if (parseInt(model.parent_id) !== parseInt(this.make_id)) {
+              Log.error(typeof model.parent_id, model.parent_id, typeof this.make_id, this.make_id);
+              throw new Error('The selected model doesn\'t belong to the make');
+          }
+        }
+      }
+    },
     year: {
       type: SMALLINT,
       allowNull:false,
@@ -78,7 +80,7 @@ const defineVehicle = (sequelize, MakeModel) => {
     },
     image: {
       type: STRING,
-      allowNull:false,
+      allowNull: true,
       validate: {
         notEmpty: true,
       }

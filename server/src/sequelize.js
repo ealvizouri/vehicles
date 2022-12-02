@@ -15,7 +15,7 @@ var sq = (function () {
 
   function setup() {
     MakeModel
-      .sync()
+      .sync({ force: false })
       .then(() => {
         makeModels.forEach(async item => {
           try {
@@ -40,7 +40,7 @@ var sq = (function () {
           }
         });
         Vehicle
-          .sync({ force: true })
+          .sync({ force: false })
           .then(() => {
             Vehicle.create({
               vin: '1HGBH41JXMN109186',
